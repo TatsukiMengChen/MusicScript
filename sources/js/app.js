@@ -56,7 +56,7 @@ $("#tone-block").change(function() {
   for (i in tone_block_list) { //判断音块的序号
     if (tone_block == tone_block_list[i]) { //如果对应上
       blocks[selected_block_id - 1][0] = parseInt(i) //将更改的数据更新到总方块数据里
-      $("#block-table" + selected_block_id).children("div:last").children("p").text(tone_block + " | " + blocks[selected_block_id - 1][1]) //更新显示的文本
+      $("#block-table" + selected_block_id).children("div:last").children("p").text(tone_block_list[blocks[selected_block_id - 1][0]] + " | " + blocks[selected_block_id - 1][1]) //更新显示的文本
       $("#block-table" + selected_block_id).children("div:last").children("img").attr("src", icon_path[0][i]) //更新显示的图片
       break
     }
@@ -67,7 +67,7 @@ $("#tone-block").change(function() {
 $("#tone-block-type").change(function() {
   tone_block_type = $(this).val()
   blocks[selected_block_id - 1][1] = parseInt(tone_block_type)
-  $("#block-table" + selected_block_id).children("div:last").children("p").text(tone_block_list[blocks[selected_block_id - 1][0]] + " | " + tone_block_type) //更新显示的文本
+  $("#block-table" + selected_block_id).children("div:last").children("p").text(tone_block_list[blocks[selected_block_id - 1][0]] + " | " + blocks[selected_block_id - 1][1]) //更新显示的文本
   $("#block-table" + selected_block_id).children("div:last").children("img").attr("src", icon_path[0][blocks[selected_block_id - 1][0]]) //更新显示的图片
 });
 
@@ -82,7 +82,7 @@ $("#instrument-block").change(function() {
         $("#instrument-block-type").append('<option>' + instrument_block_type_list[blocks[selected_block_id - 1][2]][j] + '</option>')
       }
       $("#instrument-block-type").val(instrument_block_type_list[blocks[selected_block_id - 1][2]][blocks[selected_block_id - 1][3]]); //更新乐器可选类型
-      $("#block-table" + selected_block_id).children("div:first").children("p").text(instrument_block + " | " + instrument_block_type_list[i][blocks[selected_block_id - 1][3]]) //更新显示的文本
+      $("#block-table" + selected_block_id).children("div:first").children("p").text(instrument_block_list[blocks[selected_block_id - 1][2]] + " | " + instrument_block_type_list[i][blocks[selected_block_id - 1][3]]) //更新显示的文本
       $("#block-table" + selected_block_id).children("div:first").children("img").attr("src", icon_path[1][i]) //更新显示的图片
       break
     }
@@ -95,7 +95,7 @@ $("#instrument-block-type").change(function() {
   for (i = 0; i < 8; i++) { //判断乐器的序号
     if (instrument_block_type == instrument_block_type_list[blocks[selected_block_id - 1][2]][i]) { //如果对应上
       blocks[selected_block_id - 1][3] = parseInt(i) //将更改的数据更新到总方块数据里
-      $("#block-table" + selected_block_id).children("div:first").children("p").text(instrument_block_list[blocks[selected_block_id - 1][2]] + " | " + instrument_block_type) //更新显示的文本
+      $("#block-table" + selected_block_id).children("div:first").children("p").text(instrument_block_list[blocks[selected_block_id - 1][2]] + " | " + instrument_block_type_list[blocks[selected_block_id - 1][2]][i]) //更新显示的文本
       $("#block-table" + selected_block_id).children("div:first").children("img").attr("src", icon_path[1][blocks[selected_block_id - 1][2]]) //更新显示的图片
     }
   }
@@ -140,8 +140,9 @@ $("#delete-block").click(function() { //算法部分，最好别改
 //插入方块
 $("#insert-block").click(function() {
   if (selected_block_id != 0) {
-    add_block(selected_block_id)
+    add_block([0, 0, 0, 0], selected_block_id)
     block_select($("#app").children('.block-table').eq(selected_block_id))
+    $.growl.notice({ title: "", message: "插入成功", size: "small" });
   } else {
     $.growl.warning({ title: "", message: "你还未选中方块！", size: "medium" });
   }
@@ -181,69 +182,25 @@ $("#recover-block").click(function() {
   }
 });
 
-//生成脚本
-$("#create-script").click(function() {
-  if (tables_num == 0) {
-    $.growl.warning({ title: "", message: "你还未编辑音乐！", size: "medium" });
-  } else {
-    rhythm = $("#rhythm").val()
-    script = ("music = " + JSON.stringify(blocks).replaceAll("[", "{").replaceAll("]", "}")+music_script1+rhythm+music_script2)
-    $("#code").text(script)
-    Prism.highlightAll(true, null)
-    $.growl.notice({ title: "", message: "脚本生成成功！", size: "medium" });
-  }
-});
-
-function copyToClipboard(text) {
-    var dummy = document.createElement("textarea");
-    // to avoid breaking orgain page when copying more words
-    // cant copy when adding below this code
-    // dummy.style.display = 'none'
-    document.body.appendChild(dummy);
-    //Be careful if you use texarea. setAttribute('value', value), which works with "input" does not work with "textarea". – Eduard
-    dummy.value = text;
-    dummy.select();
-    document.execCommand("copy");
-    document.body.removeChild(dummy);
-}
-
-
-//复制脚本
-$("#copy-script").click(function() {
-  if (script == "") {
-    $.growl.warning({ title: "", message: "你还未生成脚本！", size: "medium" });
-  }
-  else {
-    copyToClipboard(script)
-    $.growl.notice({ title: "", message: "脚本复制成功！", size: "medium" });
-  }
-});
-
 //添加方块
-function add_block(pos, data) {
+function add_block(data, pos) {
   tables_num += 1 //方块总数+1
   if (pos == null) { pos = tables_num }
   if (data == null) { data = [0, 0, 0, 0] }
   blocks.splice(pos - 1, 0, data); //在方块表中插入默认数据
   if (pos == tables_num) {
-    $("#add-block-table").before('<div class="block-table" id="block-table' + pos + '" ><p>' + pos + '</p><div class="blocks" block-type="instrument"><img src="images/block/icon693.png"><p>鼓 | 0</p></div><div class="blocks" block-type="tone"><img src="images/block/icon690.png"><p>低音块 | 0</p></div></div>'); //插入新的方块
-    $.growl.notice({ title: "", message: "添加成功", size: "small" });
+    $("#add-block-table").before('<div class="block-table" id="block-table' + pos + '" ><p>' + pos + '</p><div class="blocks" block-type="instrument"><img src="images/block/icon693.png"><p>' + instrument_block_list[data[2]] + " | " + instrument_block_type_list[data[2]][data[3]] + '</p></div><div class="blocks" block-type="tone"><img src="images/block/icon690.png"><p>' + tone_block_list[data[0]] + ' | ' + data[1] + '</p></div></div>'); //插入新的方块
     $("#app").animate({ scrollLeft: '+=100' }, 0); //平移到末尾
   } else {
-    if (pos == 1) {
-      $("#app").children('.block-table').eq(pos - 1).before('<div class="block-table" id="block-table' + pos + '" ><p>' + pos + '</p><div class="blocks" block-type="instrument"><img src="images/block/icon693.png"><p>鼓 | 0</p></div><div class="blocks" block-type="tone"><img src="images/block/icon690.png"><p>低音块 | 0</p></div></div>'); //插入新的方块
-      updata_num(pos - 1)
-      $.growl.notice({ title: "", message: "插入成功", size: "small" });
-    } else {
-      $("#app").children('.block-table').eq(pos - 2).after('<div class="block-table" id="block-table' + pos + '" ><p>' + pos + '</p><div class="blocks" block-type="instrument"><img src="images/block/icon693.png"><p>鼓 | 0</p></div><div class="blocks" block-type="tone"><img src="images/block/icon690.png"><p>低音块 | 0</p></div></div>'); //插入新的方块
-      updata_num(pos - 1)
-      $.growl.notice({ title: "", message: "插入成功", size: "small" });
-    }
+    $("#app").children('.block-table').eq(pos - 1).before('<div class="block-table" id="block-table' + pos + '" ><p>' + pos + '</p><div class="blocks" block-type="instrument"><img src="images/block/icon693.png"><p>鼓 | 0</p></div><div class="blocks" block-type="tone"><img src="images/block/icon690.png"><p>低音块 | 0</p></div></div>'); //插入新的方块
+    updata_num(pos - 1)
   }
+
 }
 
 $("#add-block").click(function() {
   add_block()
+  $.growl.notice({ title: "", message: "添加成功", size: "small" });
 });
 
 function block_select(object) {
@@ -272,4 +229,73 @@ function block_select(object) {
 //选中方块
 $("#app").on("click", ".block-table", function() {
   block_select(this)
+});
+
+//导入乐谱
+$("#import-music").click(function() {
+  if ($("#music-input").val() != "") {
+    try {
+      music = JSON.parse($("#music-input").val().replaceAll("{", "[").replaceAll("}", "]"))
+      for (i in music) {
+        add_block(music[i])
+      }
+      $.growl.notice({ title: "", message: "乐谱导入成功！", size: "medium" });
+    } catch (error) {
+      $.growl.error({ title: "", message: "乐谱格式错误！", size: "medium" });
+    }
+  } else {
+    $.growl.warning({ title: "", message: "乐谱不存在！", size: "medium" });
+  }
+})
+
+//导出乐谱
+$("#export-music").click(function() {
+  if (tables_num != 0) {
+    $("#music-input").val(JSON.stringify(blocks).replaceAll("[", "{").replaceAll("]", "}"))
+    $.growl.notice({ title: "", message: "乐谱导出成功！", size: "medium" });
+  } else {
+    $.growl.warning({ title: "", message: "你还未编辑音乐！", size: "medium" });
+  }
+})
+
+//复制乐谱
+$("#copy-music").click(function() {
+  if ($("#music-input").val() != "") {
+    copyToClipboard($("#music-input").val())
+    $.growl.notice({ title: "", message: "乐谱复制成功！", size: "medium" });
+  } else {
+    $.growl.warning({ title: "", message: "乐谱不存在！", size: "medium" });
+  }
+})
+
+//生成脚本
+$("#create-script").click(function() {
+  if (tables_num == 0) {
+    $.growl.warning({ title: "", message: "你还未编辑音乐！", size: "medium" });
+  } else {
+    rhythm = $("#rhythm").val()
+    script = ("music = " + JSON.stringify(blocks).replaceAll("[", "{").replaceAll("]", "}") + music_script1 + rhythm + music_script2)
+    $("#code").text(script)
+    Prism.highlightAll(true, null)
+    $.growl.notice({ title: "", message: "脚本生成成功！", size: "medium" });
+  }
+});
+
+function copyToClipboard(text) {
+  var dummy = document.createElement("textarea");
+  document.body.appendChild(dummy);
+  dummy.value = text;
+  dummy.select();
+  document.execCommand("copy");
+  document.body.removeChild(dummy);
+}
+
+//复制脚本
+$("#copy-script").click(function() {
+  if (script == "") {
+    $.growl.warning({ title: "", message: "你还未生成脚本！", size: "medium" });
+  } else {
+    copyToClipboard(script)
+    $.growl.notice({ title: "", message: "脚本复制成功！", size: "medium" });
+  }
 });
