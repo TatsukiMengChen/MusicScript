@@ -60,7 +60,7 @@ function MusicBlock:create(music)
             Block:setBlockAll(pos.x, pos.y, pos.z, 702, self.rhythm * 4 + 1) --W
         end
         setPos()
-        if music[5] ~= -1 then
+        if k[5] ~= -1 then
             if (v[1] == 0) then --低音
                 Block:setBlockAll(pos.x, pos.y, pos.z, self.bass, v[2])
             elseif (v[1] == 1) then --中音
