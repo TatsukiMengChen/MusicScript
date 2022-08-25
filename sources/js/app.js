@@ -141,7 +141,7 @@ $("#delete-block").click(function() { //算法部分，最好别改
 //复制方块
 $("#copy-block").click(function() {
   if (selected_block_id != 0) {
-    copyed_block_data = blocks[selected_block_id-1]
+    copyed_block_data = JSON.parse(JSON.stringify(blocks[selected_block_id-1]))
     $.growl.notice({ title: "", message: "复制成功", size: "small" });
   } else {
     $.growl.warning({ title: "", message: "你还未选中方块！", size: "medium" });
