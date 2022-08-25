@@ -198,6 +198,7 @@ function add_block(data, pos) {
   tables_num += 1 //方块总数+1
   if (pos == null) { pos = tables_num }
   if (data == null) { data = [0, 0, 0, 0] }
+  data = JSON.parse(JSON.stringify(data))
   blocks.splice(pos - 1, 0, data); //在方块表中插入默认数据
   if (pos == tables_num) {
     $("#add-block-table").before('<div class="block-table" id="block-table' + pos + '" ><p>' + pos + '</p><div class="blocks" block-type="instrument"><img src="images/block/icon693.png"><p>' + instrument_block_list[data[2]] + " | " + instrument_block_type_list[data[2]][data[3]] + '</p></div><div class="blocks" block-type="tone"><img src="images/block/icon690.png"><p>' + tone_block_list[data[0]] + ' | ' + data[1] + '</p></div></div>'); //插入新的方块
