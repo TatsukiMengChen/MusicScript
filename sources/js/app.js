@@ -273,6 +273,11 @@ function check_music(music) {
   return true
 }
 
+//兼容旧版浏览器无法使用replaceAll
+String.prototype.replaceAll = function(s1, s2){
+    return this.replace(new RegExp(s1,"gm"),s2);
+};
+
 $("#import-music").click(function() {
   if ($("#music-input").val() != "") {
     try {
@@ -294,7 +299,7 @@ $("#import-music").click(function() {
 //导出乐谱
 $("#export-music").click(function() {
   if (tables_num != 0) {
-    $("#music-input").val(JSON.stringify(blocks).replaceAll("[", "{").replaceAll("]", "}"))
+    $("#music-input").val(JSON.stringify(blocks).replaceAll(/\[/, "{").replaceAll("]", "}"))
     $.growl.notice({ title: "", message: "乐谱导出成功！", size: "medium" });
   } else {
     $.growl.warning({ title: "", message: "你还未编辑音乐！", size: "medium" });
@@ -317,7 +322,7 @@ $("#create-script").click(function() {
     $.growl.warning({ title: "", message: "你还未编辑音乐！", size: "medium" });
   } else {
     rhythm = $("#rhythm").val()
-    script = ("music = " + JSON.stringify(blocks).replaceAll("[", "{").replaceAll("]", "}") + music_script1 + rhythm + music_script2)
+    script = ("music = " + JSON.stringify(blocks).replaceAll(/\[/, "{").replaceAll("]", "}") + music_script1 + rhythm + music_script2)
     $("#code").text(script)
     Prism.highlightAll(true, null)
     $.growl.notice({ title: "", message: "脚本生成成功！", size: "medium" });
