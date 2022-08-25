@@ -29,6 +29,7 @@ tables_num = 0 //记录方块的数量
 blocks = [] //记录所有方块的数据
 selected_block = "" //记录上一个选中的方块
 selected_block_id = 0 //记录上一个选中的方块序号
+copyed_block_data = [0,0,0,0] //记录被复制的方块数据
 
 script = ""
 music_script1 = `Player:notifyGameInfo2Self(0,"点击任意方块开始生成音乐")Player:notifyGameInfo2Self(0,"生成起点为房主坐标")MusicBlock={bass=690,alto=691,high=692,drum=693,elec=694,synt=695,defaultBlock=667,rhythm=`
@@ -137,10 +138,20 @@ $("#delete-block").click(function() { //算法部分，最好别改
   }
 });
 
+//复制方块
+$("#copy-block").click(function() {
+  if (selected_block_id != 0) {
+    copyed_block_data = blocks[selected_block_id-1]
+    $.growl.notice({ title: "", message: "复制成功", size: "small" });
+  } else {
+    $.growl.warning({ title: "", message: "你还未选中方块！", size: "medium" });
+  }
+})
+
 //插入方块
 $("#insert-block").click(function() {
   if (selected_block_id != 0) {
-    add_block([0, 0, 0, 0], selected_block_id)
+    add_block(copyed_block_data, selected_block_id)
     block_select($("#app").children('.block-table').eq(selected_block_id))
     $.growl.notice({ title: "", message: "插入成功", size: "small" });
   } else {
@@ -192,14 +203,17 @@ function add_block(data, pos) {
     $("#add-block-table").before('<div class="block-table" id="block-table' + pos + '" ><p>' + pos + '</p><div class="blocks" block-type="instrument"><img src="images/block/icon693.png"><p>' + instrument_block_list[data[2]] + " | " + instrument_block_type_list[data[2]][data[3]] + '</p></div><div class="blocks" block-type="tone"><img src="images/block/icon690.png"><p>' + tone_block_list[data[0]] + ' | ' + data[1] + '</p></div></div>'); //插入新的方块
     $("#app").animate({ scrollLeft: '+=100' }, 0); //平移到末尾
   } else {
-    $("#app").children('.block-table').eq(pos - 1).before('<div class="block-table" id="block-table' + pos + '" ><p>' + pos + '</p><div class="blocks" block-type="instrument"><img src="images/block/icon693.png"><p>鼓 | 0</p></div><div class="blocks" block-type="tone"><img src="images/block/icon690.png"><p>低音块 | 0</p></div></div>'); //插入新的方块
+    $("#app").children('.block-table').eq(pos - 1).before('<div class="block-table" id="block-table' + pos + '" ><p>' + pos + '</p><div class="blocks" block-type="instrument"><img src="images/block/icon693.png"><p>' + instrument_block_list[data[2]] + " | " + instrument_block_type_list[data[2]][data[3]] + '</p></div><div class="blocks" block-type="tone"><img src="images/block/icon690.png"><p>' + tone_block_list[data[0]] + ' | ' + data[1] + '</p></div></div>'); //插入新的方块
     updata_num(pos - 1)
   }
-
+  if (data[4] == -1) {
+    $("#block-table" + pos).children("div:last").children("img").attr("src", "images/block/icon667.png") //更新显示的图片
+    $("#block-table" + pos).children("div:first").children("img").attr("src", "images/block/icon667.png") //更新显示的图片
+  }
 }
 
 $("#add-block").click(function() {
-  add_block()
+  add_block(copyed_block_data)
   $.growl.notice({ title: "", message: "添加成功", size: "small" });
 });
 
@@ -232,14 +246,43 @@ $("#app").on("click", ".block-table", function() {
 });
 
 //导入乐谱
+
+function check_music(music) {
+  for(i in music) {
+    if (music[i][0] <0 || music[i][0] >2 ){
+      $.growl.error({ title: "", message: "在尝试导入music["+i+"][0]时发现了一个问题！", size: "large" });
+      return false
+    }
+    if (music[i][1] <0 || music[i][1] >11 ){
+      $.growl.error({ title: "", message: "在尝试导入music["+i+"][1]时发现了一个问题！", size: "large" });
+      return false
+    }
+    if (music[i][2] <0 || music[i][2] >2 ){
+      $.growl.error({ title: "", message: "在尝试导入music["+i+"][2]时发现了一个问题！", size: "large" });
+      return false
+    }
+    if (music[i][3] <0 || music[i][3] >7 ){
+      $.growl.error({ title: "", message: "在尝试导入music["+i+"][3]时发现了一个问题！", size: "large" });
+      return false
+    }
+    if (music[i][4] != undefined && music[i][4] != -1){
+      $.growl.error({ title: "", message: "在尝试导入music["+i+"][4]时发现了一个问题！", size: "large" });
+      return false
+    }
+  }
+  return true
+}
+
 $("#import-music").click(function() {
   if ($("#music-input").val() != "") {
     try {
       music = JSON.parse($("#music-input").val().replaceAll("{", "[").replaceAll("}", "]"))
-      for (i in music) {
-        add_block(music[i])
+      if (check_music(music)) {
+        for (i in music) {
+          add_block(music[i])
+        }
+        $.growl.notice({ title: "", message: "乐谱导入成功！", size: "medium" });
       }
-      $.growl.notice({ title: "", message: "乐谱导入成功！", size: "medium" });
     } catch (error) {
       $.growl.error({ title: "", message: "乐谱格式错误！", size: "medium" });
     }

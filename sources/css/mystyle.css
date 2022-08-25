@@ -8,8 +8,6 @@ img {
   -webkit-user-drag: none;
 }
 
-
-
 #toolbar {
   background: #fafafa;
 }
@@ -32,7 +30,6 @@ img {
   disabled: disabled;
 }
 
-
 .block-tools {
   color: #ffffff;
   padding: 10px;
@@ -51,10 +48,13 @@ img {
   background: #f44336;
 }
 
+#copy-block {
+  background: #2196f3;
+}
+
 #insert-block {
   background: #4caf50;
 }
-
 
 #cancel-block {
   background: #9e9e9e;
